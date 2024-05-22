@@ -102,8 +102,6 @@ class Url_Redirect_Tracking_Public {
 
     public function handle_redirects() {
 
-    	Url_Redirect_Tracking_Utils::write_log('handle_redirects');
-
         global $wp_query, $wpdb;
 
         if (isset($wp_query->query_vars['enter'])) {

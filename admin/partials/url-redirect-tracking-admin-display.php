@@ -16,7 +16,7 @@ global $wpdb;
 $table_name = $wpdb->prefix . 'tl_urls';
 
 // Handle form submission for adding or editing URL
-if (isset($_POST['action']) && $_POST['action'] == 'add_url') {
+if ($_POST['action'] == 'add_url') {
     $url = sanitize_text_field($_POST['url']);
     $redirect = sanitize_text_field($_POST['redirect']);
     if ($_POST['id']) {
@@ -39,7 +39,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'add_url') {
 }
 
 // Handle URL deletion
-if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
+if ($_GET['action'] == 'delete' && $_GET['id']) {
     $wpdb->delete($table_name, array('id' => intval($_GET['id'])));
     // Redirect to remove query params
     wp_redirect(remove_query_arg(array('action', 'id')));
@@ -47,7 +47,10 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
 }
 
 // Handle bulk delete action
-if (isset($_POST['bulk_action']) && ($_POST['bulk_action'] == 'delete') && !empty($_POST['url_ids'])) {
+Url_Redirect_Tracking_Utils::write_log($_REQUEST);
+if ($_POST['bulk_action'] == 'delete' && !empty($_POST['url_ids'])) {
+
+    Url_Redirect_Tracking_Utils::write_log('inside bulk_delete');
     foreach ($_POST['url_ids'] as $url_id) {
         $wpdb->delete($table_name, array('id' => intval($url_id)));
     }
@@ -106,7 +109,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'edit' && $_GET['id']) {
                 </select>
                 <input type="submit" id="doaction" class="button action" value="Apply">
             </div>
-            <div class="alignleft actions">
+            <div class="alignright actions">
                 <label for="urls_per_page">URLs per page:</label>
                 <input type="number" name="urls_per_page" id="urls_per_page" value="<?php echo esc_attr($limit); ?>" min="1" max="100">
                 <input type="submit" class="button" value="Apply">
@@ -133,7 +136,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'edit' && $_GET['id']) {
                             <th scope="row" class="check-column">
                                 <input type="checkbox" name="url_ids[]" value="<?php echo $url->id; ?>">
                             </th>
-                            <td><?php echo esc_url(home_url( '/forward/' . $url->url)); ?></td>
+                            <td><?php echo esc_html($url->url); ?></td>
                             <td><?php echo esc_html($url->redirect); ?></td>
                             <td><?php echo $url->clicks; ?></td>
                             <td><?php echo $url->created_at; ?></td>
@@ -152,14 +155,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'edit' && $_GET['id']) {
             </tbody>
         </table>
 
-        <div class="tablenav bottom">
-            <div class="alignleft actions bulkactions">
-                <select name="bulk_action">
-                    <option value="-1">Bulk actions</option>
-                    <option value="delete">Delete</option>
-                </select>
-                <input type="submit" id="doaction2" class="button action" value="Apply">
-            </div>
+        <div class="tablenav bottom alignright">
             <div class="tablenav-pages">
                 <?php
                 $pagination_args = array(
@@ -188,3 +184,4 @@ document.getElementById('cb-select-all').addEventListener('click', function() {
     checkboxes.forEach(checkbox => checkbox.checked = this.checked);
 });
 </script>
+
