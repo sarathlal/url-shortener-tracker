@@ -47,10 +47,8 @@ if ($_GET['action'] == 'delete' && $_GET['id']) {
 }
 
 // Handle bulk delete action
-Url_Redirect_Tracking_Utils::write_log($_REQUEST);
 if ($_POST['bulk_action'] == 'delete' && !empty($_POST['url_ids'])) {
 
-    Url_Redirect_Tracking_Utils::write_log('inside bulk_delete');
     foreach ($_POST['url_ids'] as $url_id) {
         $wpdb->delete($table_name, array('id' => intval($url_id)));
     }
@@ -136,7 +134,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'edit' && $_GET['id']) {
                             <th scope="row" class="check-column">
                                 <input type="checkbox" name="url_ids[]" value="<?php echo $url->id; ?>">
                             </th>
-                            <td><?php echo esc_html($url->url); ?></td>
+                            <td><?php echo esc_url(home_url( '/forward/' . $url->url)); ?></td>
                             <td><?php echo esc_html($url->redirect); ?></td>
                             <td><?php echo $url->clicks; ?></td>
                             <td><?php echo $url->created_at; ?></td>

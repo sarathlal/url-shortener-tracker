@@ -110,10 +110,75 @@ class Url_Redirect_Tracking_Admin {
             array($this, 'display_plugin_admin_page'),
             'dashicons-admin-links'
         );
+
+        add_submenu_page(
+            'url-redirect-tracking',
+            'Settings',
+            'Settings',
+            'manage_options',
+            'url-redirect-tracking-settings',
+            array($this, 'display_plugin_settings_page')
+        );
+
     }
 
     public function display_plugin_admin_page() {
         include_once('partials/url-redirect-tracking-admin-display.php');
-    }	
+    }
+
+  public function display_plugin_settings_page() {
+        ?>
+        <div class="wrap">
+            <h1>URL Redirect Tracking Settings</h1>
+            <form method="post" action="options.php">
+                <?php
+                settings_fields('url_redirect_tracking_settings_group');
+                do_settings_sections('url-redirect-tracking-settings');
+                submit_button();
+                ?>
+            </form>
+        </div>
+        <?php
+    }
+
+    public function register_settings() {
+        //register_setting('url_redirect_tracking_settings_group', 'url_redirect_tracking_settings');
+
+         register_setting('url_redirect_tracking_settings_group', 'url_redirect_tracking_settings', array($this, 'sanitize_settings'));
+
+
+        add_settings_section(
+            'url_redirect_tracking_main_section',
+            'Main Settings',
+            null,
+            'url-redirect-tracking-settings'
+        );
+
+        add_settings_field(
+            'endpoint',
+            'Custom Endpoint',
+            array($this, 'endpoint_callback'),
+            'url-redirect-tracking-settings',
+            'url_redirect_tracking_main_section'
+        );
+    }
+
+    public function endpoint_callback() {
+        $options = get_option('url_redirect_tracking_settings');
+        ?>
+        <input type="text" name="url_redirect_tracking_settings[endpoint]" value="<?php echo isset($options['endpoint']) ? esc_attr($options['endpoint']) : 'goto'; ?>">
+        <p class="description">Set the custom endpoint for URL tracking (default is 'goto').</p>
+        <?php
+    }
+
+    public function sanitize_settings($input) {
+        add_settings_error('url_redirect_tracking_settings', 'settings_updated', 'Settings saved.', 'updated');
+        return $input;
+    }
+
+
+    public function settings_saved_notice() {
+        settings_errors('url_redirect_tracking_settings');
+    }     
 
 }

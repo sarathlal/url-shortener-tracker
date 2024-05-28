@@ -164,6 +164,12 @@ class Url_Redirect_Tracking {
 
 		$this->loader->add_action('admin_menu', $plugin_admin, 'add_plugin_admin_menu');
 
+		$this->loader->add_action('admin_init', $plugin_admin, 'register_settings');
+
+		$this->loader->add_action('admin_notices', $plugin_admin, 'settings_saved_notice');
+
+
+
 
 	}
 
