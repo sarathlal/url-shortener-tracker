@@ -9,8 +9,8 @@
  * @link       https://tinylab.dev
  * @since      1.0.0
  *
- * @package    Url_Redirect_Tracking
- * @subpackage Url_Redirect_Tracking/includes
+ * @package    WP_URL_Shortener_Tracker
+ * @subpackage WP_URL_Shortener_Tracker/includes
  */
 
 /**
@@ -20,11 +20,11 @@
  * so that it is ready for translation.
  *
  * @since      1.0.0
- * @package    Url_Redirect_Tracking
- * @subpackage Url_Redirect_Tracking/includes
+ * @package    WP_URL_Shortener_Tracker
+ * @subpackage WP_URL_Shortener_Tracker/includes
  * @author     TinyLab <hello@tinylab.dev>
  */
-class Url_Redirect_Tracking_i18n {
+class WP_URL_Shortener_Tracker_i18n {
 
 
 	/**
@@ -35,7 +35,7 @@ class Url_Redirect_Tracking_i18n {
 	public function load_plugin_textdomain() {
 
 		load_plugin_textdomain(
-			'url-redirect-tracking',
+			'wp-url-shortener-tracker',
 			false,
 			dirname( dirname( plugin_basename( __FILE__ ) ) ) . '/languages/'
 		);

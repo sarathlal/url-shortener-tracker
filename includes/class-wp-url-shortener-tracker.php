@@ -9,8 +9,8 @@
  * @link       https://tinylab.dev
  * @since      1.0.0
  *
- * @package    Url_Redirect_Tracking
- * @subpackage Url_Redirect_Tracking/includes
+ * @package    WP_URL_Shortener_Tracker
+ * @subpackage WP_URL_Shortener_Tracker/includes
  */
 
 /**
@@ -23,11 +23,11 @@
  * version of the plugin.
  *
  * @since      1.0.0
- * @package    Url_Redirect_Tracking
- * @subpackage Url_Redirect_Tracking/includes
+ * @package    WP_URL_Shortener_Tracker
+ * @subpackage WP_URL_Shortener_Tracker/includes
  * @author     TinyLab <hello@tinylab.dev>
  */
-class Url_Redirect_Tracking {
+class WP_URL_Shortener_Tracker {
 
 	/**
 	 * The loader that's responsible for maintaining and registering all hooks that power
@@ -35,7 +35,7 @@ class Url_Redirect_Tracking {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      Url_Redirect_Tracking_Loader    $loader    Maintains and registers all hooks for the plugin.
+	 * @var      WP_URL_Shortener_Tracker_Loader    $loader    Maintains and registers all hooks for the plugin.
 	 */
 	protected $loader;
 
@@ -67,12 +67,12 @@ class Url_Redirect_Tracking {
 	 * @since    1.0.0
 	 */
 	public function __construct() {
-		if ( defined( 'URL_REDIRECT_TRACKING_VERSION' ) ) {
-			$this->version = URL_REDIRECT_TRACKING_VERSION;
+		if ( defined( 'WP_URL_Shortener_Tracker_VERSION' ) ) {
+			$this->version = WP_URL_Shortener_Tracker_VERSION;
 		} else {
 			$this->version = '1.0.0';
 		}
-		$this->plugin_name = 'url-redirect-tracking';
+		$this->plugin_name = 'wp-url-shortener-tracker';
 
 		$this->load_dependencies();
 		$this->set_locale();
@@ -86,10 +86,10 @@ class Url_Redirect_Tracking {
 	 *
 	 * Include the following files that make up the plugin:
 	 *
-	 * - Url_Redirect_Tracking_Loader. Orchestrates the hooks of the plugin.
-	 * - Url_Redirect_Tracking_i18n. Defines internationalization functionality.
-	 * - Url_Redirect_Tracking_Admin. Defines all hooks for the admin area.
-	 * - Url_Redirect_Tracking_Public. Defines all hooks for the public side of the site.
+	 * - WP_URL_Shortener_Tracker_Loader. Orchestrates the hooks of the plugin.
+	 * - WP_URL_Shortener_Tracker_i18n. Defines internationalization functionality.
+	 * - WP_URL_Shortener_Tracker_Admin. Defines all hooks for the admin area.
+	 * - WP_URL_Shortener_Tracker_Public. Defines all hooks for the public side of the site.
 	 *
 	 * Create an instance of the loader which will be used to register the hooks
 	 * with WordPress.
@@ -103,38 +103,38 @@ class Url_Redirect_Tracking {
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-url-redirect-tracking-loader.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wp-url-shortener-tracker-loader.php';
 
 		/**
 		 * The class responsible for defining internationalization functionality
 		 * of the plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-url-redirect-tracking-i18n.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wp-url-shortener-tracker-i18n.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-url-redirect-tracking-admin.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wp-url-shortener-tracker-admin.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
 		 * side of the site.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-url-redirect-tracking-public.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-wp-url-shortener-tracker-public.php';
 
 		/**
 		 * The class responsible for all utility functions.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/utils/class-url-redirect-tracking-utils.php';		
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/utils/class-wp-url-shortener-tracker-utils.php';		
 
-		$this->loader = new Url_Redirect_Tracking_Loader();
+		$this->loader = new WP_URL_Shortener_Tracker_Loader();
 
 	}
 
 	/**
 	 * Define the locale for this plugin for internationalization.
 	 *
-	 * Uses the Url_Redirect_Tracking_i18n class in order to set the domain and to register the hook
+	 * Uses the WP_URL_Shortener_Tracker_i18n class in order to set the domain and to register the hook
 	 * with WordPress.
 	 *
 	 * @since    1.0.0
@@ -142,7 +142,7 @@ class Url_Redirect_Tracking {
 	 */
 	private function set_locale() {
 
-		$plugin_i18n = new Url_Redirect_Tracking_i18n();
+		$plugin_i18n = new WP_URL_Shortener_Tracker_i18n();
 
 		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
 
@@ -157,7 +157,7 @@ class Url_Redirect_Tracking {
 	 */
 	private function define_admin_hooks() {
 
-		$plugin_admin = new Url_Redirect_Tracking_Admin( $this->get_plugin_name(), $this->get_version() );
+		$plugin_admin = new WP_URL_Shortener_Tracker_Admin( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
@@ -182,7 +182,7 @@ class Url_Redirect_Tracking {
 	 */
 	private function define_public_hooks() {
 
-		$plugin_public = new Url_Redirect_Tracking_Public( $this->get_plugin_name(), $this->get_version() );
+		$plugin_public = new WP_URL_Shortener_Tracker_Public( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
@@ -221,7 +221,7 @@ class Url_Redirect_Tracking {
 	 * The reference to the class that orchestrates the hooks with the plugin.
 	 *
 	 * @since     1.0.0
-	 * @return    Url_Redirect_Tracking_Loader    Orchestrates the hooks of the plugin.
+	 * @return    WP_URL_Shortener_Tracker_Loader    Orchestrates the hooks of the plugin.
 	 */
 	public function get_loader() {
 		return $this->loader;

@@ -6,8 +6,8 @@
  * @link       https://tinylab.dev
  * @since      1.0.0
  *
- * @package    Url_Redirect_Tracking
- * @subpackage Url_Redirect_Tracking/includes
+ * @package    WP_URL_Shortener_Tracker
+ * @subpackage WP_URL_Shortener_Tracker/includes
  */
 
 /**
@@ -16,11 +16,11 @@
  * This class defines all code necessary to run during the plugin's deactivation.
  *
  * @since      1.0.0
- * @package    Url_Redirect_Tracking
- * @subpackage Url_Redirect_Tracking/includes
+ * @package    WP_URL_Shortener_Tracker
+ * @subpackage WP_URL_Shortener_Tracker/includes
  * @author     TinyLab <hello@tinylab.dev>
  */
-class Url_Redirect_Tracking_Deactivator {
+class WP_URL_Shortener_Tracker_Deactivator {
 
 	/**
 	 * Short Description. (use period)

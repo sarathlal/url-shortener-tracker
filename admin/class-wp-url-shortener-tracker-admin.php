@@ -6,8 +6,8 @@
  * @link       https://tinylab.dev
  * @since      1.0.0
  *
- * @package    Url_Redirect_Tracking
- * @subpackage Url_Redirect_Tracking/admin
+ * @package    WP_URL_Shortener_Tracker
+ * @subpackage WP_URL_Shortener_Tracker/admin
  */
 
 /**
@@ -16,11 +16,11 @@
  * Defines the plugin name, version, and two examples hooks for how to
  * enqueue the admin-specific stylesheet and JavaScript.
  *
- * @package    Url_Redirect_Tracking
- * @subpackage Url_Redirect_Tracking/admin
+ * @package    WP_URL_Shortener_Tracker
+ * @subpackage WP_URL_Shortener_Tracker/admin
  * @author     TinyLab <hello@tinylab.dev>
  */
-class Url_Redirect_Tracking_Admin {
+class WP_URL_Shortener_Tracker_Admin {
 
 	/**
 	 * The ID of this plugin.
@@ -65,15 +65,15 @@ class Url_Redirect_Tracking_Admin {
 		 * This function is provided for demonstration purposes only.
 		 *
 		 * An instance of this class should be passed to the run() function
-		 * defined in Url_Redirect_Tracking_Loader as all of the hooks are defined
+		 * defined in WP_URL_Shortener_Tracker_Loader as all of the hooks are defined
 		 * in that particular class.
 		 *
-		 * The Url_Redirect_Tracking_Loader will then create the relationship
+		 * The WP_URL_Shortener_Tracker_Loader will then create the relationship
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/url-redirect-tracking-admin.css', array(), $this->version, 'all' );
+		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/wp-url-shortener-tracker-admin.css', array(), $this->version, 'all' );
 
 	}
 
@@ -88,15 +88,15 @@ class Url_Redirect_Tracking_Admin {
 		 * This function is provided for demonstration purposes only.
 		 *
 		 * An instance of this class should be passed to the run() function
-		 * defined in Url_Redirect_Tracking_Loader as all of the hooks are defined
+		 * defined in WP_URL_Shortener_Tracker_Loader as all of the hooks are defined
 		 * in that particular class.
 		 *
-		 * The Url_Redirect_Tracking_Loader will then create the relationship
+		 * The WP_URL_Shortener_Tracker_Loader will then create the relationship
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/url-redirect-tracking-admin.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/wp-url-shortener-tracker-admin.js', array( 'jquery' ), $this->version, false );
 
 	}
 
@@ -106,24 +106,24 @@ class Url_Redirect_Tracking_Admin {
             'URLs',
             'URLs',
             'manage_options',
-            'url-redirect-tracking',
+            'wp-url-shortener-tracker',
             array($this, 'display_plugin_admin_page'),
             'dashicons-admin-links'
         );
 
         add_submenu_page(
-            'url-redirect-tracking',
+            'wp-url-shortener-tracker',
             'Settings',
             'Settings',
             'manage_options',
-            'url-redirect-tracking-settings',
+            'wp-url-shortener-tracker-settings',
             array($this, 'display_plugin_settings_page')
         );
 
     }
 
     public function display_plugin_admin_page() {
-        include_once('partials/url-redirect-tracking-admin-display.php');
+        include_once('partials/wp-url-shortener-tracker-admin-display.php');
     }
 
   public function display_plugin_settings_page() {
@@ -132,8 +132,8 @@ class Url_Redirect_Tracking_Admin {
             <h1>URL Redirect Tracking Settings</h1>
             <form method="post" action="options.php">
                 <?php
-                settings_fields('url_redirect_tracking_settings_group');
-                do_settings_sections('url-redirect-tracking-settings');
+                settings_fields('WP_URL_Shortener_Tracker_settings_group');
+                do_settings_sections('wp-url-shortener-tracker-settings');
                 submit_button();
                 ?>
             </form>
@@ -142,43 +142,43 @@ class Url_Redirect_Tracking_Admin {
     }
 
     public function register_settings() {
-        //register_setting('url_redirect_tracking_settings_group', 'url_redirect_tracking_settings');
+        //register_setting('WP_URL_Shortener_Tracker_settings_group', 'WP_URL_Shortener_Tracker_settings');
 
-         register_setting('url_redirect_tracking_settings_group', 'url_redirect_tracking_settings', array($this, 'sanitize_settings'));
+         register_setting('WP_URL_Shortener_Tracker_settings_group', 'WP_URL_Shortener_Tracker_settings', array($this, 'sanitize_settings'));
 
 
         add_settings_section(
-            'url_redirect_tracking_main_section',
+            'WP_URL_Shortener_Tracker_main_section',
             'Main Settings',
             null,
-            'url-redirect-tracking-settings'
+            'wp-url-shortener-tracker-settings'
         );
 
         add_settings_field(
             'endpoint',
             'Custom Endpoint',
             array($this, 'endpoint_callback'),
-            'url-redirect-tracking-settings',
-            'url_redirect_tracking_main_section'
+            'wp-url-shortener-tracker-settings',
+            'WP_URL_Shortener_Tracker_main_section'
         );
     }
 
     public function endpoint_callback() {
-        $options = get_option('url_redirect_tracking_settings');
+        $options = get_option('WP_URL_Shortener_Tracker_settings');
         ?>
-        <input type="text" name="url_redirect_tracking_settings[endpoint]" value="<?php echo isset($options['endpoint']) ? esc_attr($options['endpoint']) : 'goto'; ?>">
+        <input type="text" name="WP_URL_Shortener_Tracker_settings[endpoint]" value="<?php echo isset($options['endpoint']) ? esc_attr($options['endpoint']) : 'goto'; ?>">
         <p class="description">Set the custom endpoint for URL tracking (default is 'goto').</p>
         <?php
     }
 
     public function sanitize_settings($input) {
-        add_settings_error('url_redirect_tracking_settings', 'settings_updated', 'Settings saved.', 'updated');
+        add_settings_error('WP_URL_Shortener_Tracker_settings', 'settings_updated', 'Settings saved.', 'updated');
         return $input;
     }
 
 
     public function settings_saved_notice() {
-        settings_errors('url_redirect_tracking_settings');
+        settings_errors('WP_URL_Shortener_Tracker_settings');
     }     
 
 }

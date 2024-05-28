@@ -6,8 +6,8 @@
  * @link       https://tinylab.dev
  * @since      1.0.0
  *
- * @package    Url_Redirect_Tracking
- * @subpackage Url_Redirect_Tracking/includes
+ * @package    WP_URL_Shortener_Tracker
+ * @subpackage WP_URL_Shortener_Tracker/includes
  */
 
 /**
@@ -17,11 +17,11 @@
  * the plugin, and register them with the WordPress API. Call the
  * run function to execute the list of actions and filters.
  *
- * @package    Url_Redirect_Tracking
- * @subpackage Url_Redirect_Tracking/includes
+ * @package    WP_URL_Shortener_Tracker
+ * @subpackage WP_URL_Shortener_Tracker/includes
  * @author     TinyLab <hello@tinylab.dev>
  */
-class Url_Redirect_Tracking_Loader {
+class WP_URL_Shortener_Tracker_Loader {
 
 	/**
 	 * The array of actions registered with WordPress.

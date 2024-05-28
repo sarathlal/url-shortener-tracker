@@ -8,8 +8,8 @@
  * @link       https://tinylab.dev
  * @since      1.0.0
  *
- * @package    Url_Redirect_Tracking
- * @subpackage Url_Redirect_Tracking/admin/partials
+ * @package    WP_URL_Shortener_Tracker
+ * @subpackage WP_URL_Shortener_Tracker/admin/partials
  */
 
 global $wpdb;
@@ -78,6 +78,10 @@ $edit_url = null;
 if (isset($_GET['action']) && $_GET['action'] == 'edit' && $_GET['id']) {
     $edit_url = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", intval($_GET['id'])));
 }
+
+$options = get_option('wp_url_shortener_tracker_settings');
+$endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
+
 ?>
 
 <div class="wrap">
@@ -134,7 +138,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'edit' && $_GET['id']) {
                             <th scope="row" class="check-column">
                                 <input type="checkbox" name="url_ids[]" value="<?php echo $url->id; ?>">
                             </th>
-                            <td><?php echo esc_url(home_url( '/forward/' . $url->url)); ?></td>
+                            <td><?php echo esc_url(home_url( '/'.$endpoint.'/' . $url->url)); ?></td>
                             <td><?php echo esc_html($url->redirect); ?></td>
                             <td><?php echo $url->clicks; ?></td>
                             <td><?php echo $url->created_at; ?></td>

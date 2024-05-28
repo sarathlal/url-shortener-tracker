@@ -22,7 +22,7 @@
  * @link       https://tinylab.dev
  * @since      1.0.0
  *
- * @package    Url_Redirect_Tracking
+ * @package    WP_URL_Shortener_Tracker
  */
 
 // If uninstall not called from WordPress, then exit.

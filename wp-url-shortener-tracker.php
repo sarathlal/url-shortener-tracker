@@ -10,7 +10,7 @@
  *
  * @link              https://tinylab.dev
  * @since             1.0.0
- * @package           Url_Redirect_Tracking
+ * @package           WP_URL_Shortener_Tracker
  *
  * @wordpress-plugin
  * Plugin Name:       URL Redirect and Tracking
@@ -21,7 +21,7 @@
  * Author URI:        https://tinylab.dev/
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       url-redirect-tracking
+ * Text Domain:       wp-url-shortener-tracker
  * Domain Path:       /languages
  */
 
@@ -35,34 +35,34 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'URL_REDIRECT_TRACKING_VERSION', '1.0.0' );
+define( 'WP_URL_Shortener_Tracker_VERSION', '1.0.0' );
 
 /**
  * The code that runs during plugin activation.
- * This action is documented in includes/class-url-redirect-tracking-activator.php
+ * This action is documented in includes/class-wp-url-shortener-tracker-activator.php
  */
-function activate_url_redirect_tracking() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-url-redirect-tracking-activator.php';
-	Url_Redirect_Tracking_Activator::activate();
+function activate_WP_URL_Shortener_Tracker() {
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-wp-url-shortener-tracker-activator.php';
+	WP_URL_Shortener_Tracker_Activator::activate();
 }
 
 /**
  * The code that runs during plugin deactivation.
- * This action is documented in includes/class-url-redirect-tracking-deactivator.php
+ * This action is documented in includes/class-wp-url-shortener-tracker-deactivator.php
  */
-function deactivate_url_redirect_tracking() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-url-redirect-tracking-deactivator.php';
-	Url_Redirect_Tracking_Deactivator::deactivate();
+function deactivate_WP_URL_Shortener_Tracker() {
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-wp-url-shortener-tracker-deactivator.php';
+	WP_URL_Shortener_Tracker_Deactivator::deactivate();
 }
 
-register_activation_hook( __FILE__, 'activate_url_redirect_tracking' );
-register_deactivation_hook( __FILE__, 'deactivate_url_redirect_tracking' );
+register_activation_hook( __FILE__, 'activate_WP_URL_Shortener_Tracker' );
+register_deactivation_hook( __FILE__, 'deactivate_WP_URL_Shortener_Tracker' );
 
 /**
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
-require plugin_dir_path( __FILE__ ) . 'includes/class-url-redirect-tracking.php';
+require plugin_dir_path( __FILE__ ) . 'includes/class-wp-url-shortener-tracker.php';
 
 /**
  * Begins execution of the plugin.
@@ -73,10 +73,10 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-url-redirect-tracking.php'
  *
  * @since    1.0.0
  */
-function run_url_redirect_tracking() {
+function run_WP_URL_Shortener_Tracker() {
 
-	$plugin = new Url_Redirect_Tracking();
+	$plugin = new WP_URL_Shortener_Tracker();
 	$plugin->run();
 
 }
-run_url_redirect_tracking();
+run_WP_URL_Shortener_Tracker();
