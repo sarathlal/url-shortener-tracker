@@ -59,46 +59,46 @@ class WP_URL_Shortener_Tracker_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_styles() {
+	// public function enqueue_styles() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in WP_URL_Shortener_Tracker_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The WP_URL_Shortener_Tracker_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
+	// 	/**
+	// 	 * This function is provided for demonstration purposes only.
+	// 	 *
+	// 	 * An instance of this class should be passed to the run() function
+	// 	 * defined in WP_URL_Shortener_Tracker_Loader as all of the hooks are defined
+	// 	 * in that particular class.
+	// 	 *
+	// 	 * The WP_URL_Shortener_Tracker_Loader will then create the relationship
+	// 	 * between the defined hooks and the functions defined in this
+	// 	 * class.
+	// 	 */
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/wp-url-shortener-tracker-admin.css', array(), $this->version, 'all' );
+	// 	wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/wp-url-shortener-tracker-admin.css', array(), $this->version, 'all' );
 
-	}
+	// }
 
 	/**
 	 * Register the JavaScript for the admin area.
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_scripts() {
+	// public function enqueue_scripts() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in WP_URL_Shortener_Tracker_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The WP_URL_Shortener_Tracker_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
+	// 	/**
+	// 	 * This function is provided for demonstration purposes only.
+	// 	 *
+	// 	 * An instance of this class should be passed to the run() function
+	// 	 * defined in WP_URL_Shortener_Tracker_Loader as all of the hooks are defined
+	// 	 * in that particular class.
+	// 	 *
+	// 	 * The WP_URL_Shortener_Tracker_Loader will then create the relationship
+	// 	 * between the defined hooks and the functions defined in this
+	// 	 * class.
+	// 	 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/wp-url-shortener-tracker-admin.js', array( 'jquery' ), $this->version, false );
+	// 	wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/wp-url-shortener-tracker-admin.js', array( 'jquery' ), $this->version, false );
 
-	}
+	// }
 
 
     public function add_plugin_admin_menu() {
@@ -179,6 +179,114 @@ class WP_URL_Shortener_Tracker_Admin {
 
     public function settings_saved_notice() {
         settings_errors('WP_URL_Shortener_Tracker_settings');
-    }     
+    }
+
+	public function handle_url_actions() {
+
+		$url = isset($_SERVER['REQUEST_URI']) ? sanitize_url($_SERVER['REQUEST_URI']) : false;
+		if($url && is_admin() && strpos($url, "wp-url-shortener-tracker")  !== false){
+
+		    global $wpdb;
+		    $table_name = $wpdb->prefix . 'tl_urls';
+
+		    // Handle form submission for adding or editing URL
+		    if (isset($_POST['action']) && $_POST['action'] == 'add_url') {
+		        $url = sanitize_text_field($_POST['url']);
+		        $redirect = sanitize_text_field($_POST['redirect']);
+		        $error = false;
+
+		        // Validate redirect URL
+		        if (!filter_var($redirect, FILTER_VALIDATE_URL) || !(strpos($redirect, 'http://') === 0 || strpos($redirect, 'https://') === 0)) {
+		            $error = 'Invalid redirect URL. Please enter a valid URL starting with http:// or https://.';
+		        }
+
+		        // Check if URL is unique
+		        $existing_url = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table_name WHERE url = %s", $url));
+		        if ($existing_url > 0 && empty($_POST['id'])) {
+		            $error = 'This URL already exists. Please enter a unique URL.';
+		        }
+
+		        // Check if redirect URL is unique
+		        $existing_redirect = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table_name WHERE redirect = %s", $redirect));
+		        if ($existing_redirect > 0 && empty($_POST['id'])) {
+		            $error = 'This redirect URL already exists. Please enter a unique redirect URL.';
+		        }
+
+		        if (!$error) {
+		            if ($_POST['id']) {
+		                // Edit existing URL
+		                $wpdb->update($table_name, array(
+		                    'url' => $url,
+		                    'redirect' => $redirect,
+		                    'updated_at' => current_time('mysql')
+		                ), array('id' => intval($_POST['id'])));
+		                $notice = 'URL updated successfully.';
+		            } else {
+		                // Add new URL
+		                $wpdb->insert($table_name, array(
+		                    'url' => $url,
+		                    'redirect' => $redirect,
+		                    'clicks' => 0,
+		                    'created_at' => current_time('mysql'),
+		                    'updated_at' => current_time('mysql')
+		                ));
+		                $notice = 'URL added successfully.';
+		            }
+		            wp_redirect(add_query_arg('notice', urlencode($notice), remove_query_arg(array('action', 'id'))));
+		            exit();
+		        } else {
+		            wp_redirect(add_query_arg('error', urlencode($error), remove_query_arg(array('action', 'id'))));
+		            exit();
+		        }
+		    }
+
+		    // Handle URL deletion
+		    if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
+		        $wpdb->delete($table_name, array('id' => intval($_GET['id'])));
+		        $notice = 'URL deleted successfully.';
+		        wp_redirect(add_query_arg('notice', urlencode($notice), remove_query_arg(array('action', 'id'))));
+		        exit();
+		    }
+
+		    // Handle bulk delete and export actions
+		    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+		        if (isset($_POST['bulk_action']) && $_POST['bulk_action'] == 'delete' && !empty($_POST['url_ids'])) {
+		            foreach ($_POST['url_ids'] as $url_id) {
+		                $wpdb->delete($table_name, array('id' => intval($url_id)));
+		            }
+		            $notice = 'Selected URLs deleted successfully.';
+		            wp_redirect(add_query_arg('notice', urlencode($notice)));
+		            exit();
+		        }
+
+		        if (isset($_POST['bulk_action']) && $_POST['bulk_action'] == 'export' && !empty($_POST['url_ids'])) {
+		            $url_ids = array_map('intval', $_POST['url_ids']);
+		            $urls_to_export = $wpdb->get_results("SELECT * FROM $table_name WHERE id IN (" . implode(',', $url_ids) . ")", ARRAY_A);
+
+		            if ($urls_to_export) {
+		                // Set headers to force download of the CSV file
+		                header('Content-Type: text/csv');
+		                header('Content-Disposition: attachment; filename="exported_urls.csv"');
+		                header('Pragma: no-cache');
+		                header('Expires: 0');
+
+		                $output = fopen('php://output', 'w');
+		                fputcsv($output, array('ID', 'URL', 'Redirect', 'Clicks', 'Created At', 'Updated At'));
+
+		                foreach ($urls_to_export as $url) {
+		                    fputcsv($output, $url);
+		                }
+
+		                fclose($output);
+		                exit();
+		            } else {
+		                $error = 'No URLs found to export.';
+		                wp_redirect(add_query_arg('error', urlencode($error)));
+		                exit();
+		            }
+		        }
+		    }
+		}
+	}
 
 }

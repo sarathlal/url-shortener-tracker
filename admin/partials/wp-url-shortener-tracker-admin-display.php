@@ -12,58 +12,16 @@
  * @subpackage WP_URL_Shortener_Tracker/admin/partials
  */
 
+
 global $wpdb;
 $table_name = $wpdb->prefix . 'tl_urls';
 
-// Handle form submission for adding or editing URL
-if ($_POST['action'] == 'add_url') {
-    $url = sanitize_text_field($_POST['url']);
-    $redirect = sanitize_text_field($_POST['redirect']);
-    if ($_POST['id']) {
-        // Edit existing URL
-        $wpdb->update($table_name, array(
-            'url' => $url,
-            'redirect' => $redirect,
-            'updated_at' => current_time('mysql')
-        ), array('id' => intval($_POST['id'])));
-    } else {
-        // Add new URL
-        $wpdb->insert($table_name, array(
-            'url' => $url,
-            'redirect' => $redirect,
-            'clicks' => 0,
-            'created_at' => current_time('mysql'),
-            'updated_at' => current_time('mysql')
-        ));
-    }
-}
-
-// Handle URL deletion
-if ($_GET['action'] == 'delete' && $_GET['id']) {
-    $wpdb->delete($table_name, array('id' => intval($_GET['id'])));
-    // Redirect to remove query params
-    wp_redirect(remove_query_arg(array('action', 'id')));
-    exit();
-}
-
-// Handle bulk delete action
-if ($_POST['bulk_action'] == 'delete' && !empty($_POST['url_ids'])) {
-
-    foreach ($_POST['url_ids'] as $url_id) {
-        $wpdb->delete($table_name, array('id' => intval($url_id)));
-    }
-    // Redirect to remove query params
-    wp_redirect(remove_query_arg(array('bulk_action')));
-    exit();
-}
-
-// Handle number of URLs per page
+// Pagination and Sorting parameters
 $limit = isset($_POST['urls_per_page']) ? intval($_POST['urls_per_page']) : (isset($_GET['urls_per_page']) ? intval($_GET['urls_per_page']) : 20);
 if ($limit <= 0) $limit = 20; // Ensure the limit is a positive number
 $page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
 $offset = ($page - 1) * $limit;
 
-// Sorting parameters
 $sort_by = isset($_GET['sort_by']) ? sanitize_text_field($_GET['sort_by']) : 'id';
 $order = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'ASC';
 $order = in_array($order, ['ASC', 'DESC']) ? $order : 'ASC';
@@ -75,17 +33,29 @@ $total_pages = ceil($total_urls / $limit);
 
 // Fetch URL for editing if edit action is triggered
 $edit_url = null;
-if (isset($_GET['action']) && $_GET['action'] == 'edit' && $_GET['id']) {
+if (isset($_GET['action']) && $_GET['action'] == 'edit' && isset($_GET['id'])) {
     $edit_url = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", intval($_GET['id'])));
 }
 
 $options = get_option('wp_url_shortener_tracker_settings');
 $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
-
 ?>
 
 <div class="wrap">
     <h1>URLs</h1>
+
+    <?php if (isset($_GET['notice'])): ?>
+        <div class="notice notice-success is-dismissible">
+            <p><?php echo esc_html(urldecode($_GET['notice'])); ?></p>
+        </div>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['error'])): ?>
+        <div class="notice notice-error is-dismissible">
+            <p><?php echo esc_html(urldecode($_GET['error'])); ?></p>
+        </div>
+    <?php endif; ?>
+
     <form method="post">
         <input type="hidden" name="action" value="add_url">
         <input type="hidden" name="id" value="<?php echo $edit_url ? esc_attr($edit_url->id) : ''; ?>">
@@ -108,6 +78,7 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
                 <select name="bulk_action">
                     <option value="-1">Bulk actions</option>
                     <option value="delete">Delete</option>
+                    <option value="export">Export to CSV</option>
                 </select>
                 <input type="submit" id="doaction" class="button action" value="Apply">
             </div>
@@ -123,6 +94,7 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
                     <td id="cb" class="manage-column column-cb check-column">
                         <input type="checkbox" id="cb-select-all">
                     </td>
+                    <th><a href="<?php echo add_query_arg(array('sort_by' => 'id', 'order' => ($sort_by == 'id' && $order == 'ASC') ? 'DESC' : 'ASC')); ?>">ID</a></th>
                     <th>URL</th>
                     <th>Redirect</th>
                     <th><a href="<?php echo add_query_arg(array('sort_by' => 'clicks', 'order' => ($sort_by == 'clicks' && $order == 'ASC') ? 'DESC' : 'ASC')); ?>">Clicks</a></th>
@@ -138,6 +110,7 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
                             <th scope="row" class="check-column">
                                 <input type="checkbox" name="url_ids[]" value="<?php echo $url->id; ?>">
                             </th>
+                            <td><?php echo $url->id; ?></td>
                             <td><?php echo esc_url(home_url( '/'.$endpoint.'/' . $url->url)); ?></td>
                             <td><?php echo esc_html($url->redirect); ?></td>
                             <td><?php echo $url->clicks; ?></td>
@@ -157,8 +130,8 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
             </tbody>
         </table>
 
-        <div class="tablenav bottom alignright">
-            <div class="tablenav-pages">
+        <div class="tablenav bottom">
+            <div class="alignleft tablenav-pages">
                 <?php
                 $pagination_args = array(
                     'base' => add_query_arg(array('paged' => '%#%', 'sort_by' => $sort_by, 'order' => $order, 'urls_per_page' => $limit)),
@@ -177,6 +150,7 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
                 ?>
             </div>
         </div>
+
     </form>
 </div>
 
@@ -185,5 +159,13 @@ document.getElementById('cb-select-all').addEventListener('click', function() {
     const checkboxes = document.querySelectorAll('input[name="url_ids[]"]');
     checkboxes.forEach(checkbox => checkbox.checked = this.checked);
 });
-</script>
 
+window.addEventListener('load', function() {
+    const url = new URL(window.location);
+    if (url.searchParams.has('notice') || url.searchParams.has('error')) {
+        url.searchParams.delete('notice');
+        url.searchParams.delete('error');
+        window.history.replaceState({}, document.title, url.toString());
+    }
+});
+</script>

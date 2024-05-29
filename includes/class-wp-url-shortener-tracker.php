@@ -159,8 +159,8 @@ class WP_URL_Shortener_Tracker {
 
 		$plugin_admin = new WP_URL_Shortener_Tracker_Admin( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		// $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
+		// $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
 		$this->loader->add_action('admin_menu', $plugin_admin, 'add_plugin_admin_menu');
 
@@ -168,8 +168,7 @@ class WP_URL_Shortener_Tracker {
 
 		$this->loader->add_action('admin_notices', $plugin_admin, 'settings_saved_notice');
 
-
-
+		$this->loader->add_action('admin_init', $plugin_admin, 'handle_url_actions');
 
 	}
 
@@ -184,16 +183,14 @@ class WP_URL_Shortener_Tracker {
 
 		$plugin_public = new WP_URL_Shortener_Tracker_Public( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+		// $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
+		// $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 
 		$this->loader->add_action('init', $plugin_public, 'add_rewrite_rules');
 
 		$this->loader->add_action('query_vars', $plugin_public, 'add_query_vars');
 
-
 		$this->loader->add_action('template_redirect', $plugin_public, 'handle_redirects');
-
 
 	}
 
