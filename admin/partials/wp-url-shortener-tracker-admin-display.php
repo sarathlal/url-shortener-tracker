@@ -92,7 +92,7 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
         <table class="form-table">
             <tr>
                 <th scope="row"><label for="url">URL</label></th>
-                <td><input name="url" type="text" id="url" value="<?php echo $edit_url ? esc_attr($edit_url->url) : ''; ?>" class="regular-text"></td>
+                <td><?php echo esc_url(home_url( '/'.$endpoint)); ?>/<input name="url" type="text" id="url" value="<?php echo $edit_url ? esc_attr($edit_url->url) : ''; ?>" class="regular-text"></td>
             </tr>
             <tr>
                 <th scope="row"><label for="redirect">Redirect URL</label></th>
