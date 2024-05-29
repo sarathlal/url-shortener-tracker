@@ -8,8 +8,8 @@
  * @link       https://tinylab.dev
  * @since      1.0.0
  *
- * @package    WP_URL_Shortener_Tracker
- * @subpackage WP_URL_Shortener_Tracker/public/partials
+ * @package    URL_Shortener_Tracker
+ * @subpackage URL_Shortener_Tracker/public/partials
  */
 ?>
 

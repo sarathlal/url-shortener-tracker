@@ -8,8 +8,8 @@
  * @link       https://tinylab.dev
  * @since      1.0.0
  *
- * @package    WP_URL_Shortener_Tracker
- * @subpackage WP_URL_Shortener_Tracker/admin/partials
+ * @package    URL_Shortener_Tracker
+ * @subpackage URL_Shortener_Tracker/admin/partials
  */
 
 
@@ -37,7 +37,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'edit' && isset($_GET['id'])) {
     $edit_url = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", intval($_GET['id'])));
 }
 
-$options = get_option('wp_url_shortener_tracker_settings');
+$options = get_option('url_shortener_tracker_settings');
 $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
 ?>
 

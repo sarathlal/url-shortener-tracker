@@ -6,8 +6,8 @@
  * @link       https://tinylab.dev
  * @since      1.0.0
  *
- * @package    WP_URL_Shortener_Tracker
- * @subpackage WP_URL_Shortener_Tracker/includes
+ * @package    URL_Shortener_Tracker
+ * @subpackage URL_Shortener_Tracker/includes
  */
 
 /**
@@ -16,11 +16,11 @@
  * This class defines all code necessary to run during the plugin's activation.
  *
  * @since      1.0.0
- * @package    WP_URL_Shortener_Tracker
- * @subpackage WP_URL_Shortener_Tracker/includes
+ * @package    URL_Shortener_Tracker
+ * @subpackage URL_Shortener_Tracker/includes
  * @author     TinyLab <hello@tinylab.dev>
  */
-class WP_URL_Shortener_Tracker_Utils {
+class URL_Shortener_Tracker_Utils {
 
     public static function write_log ( $log )  {
         if ( true === WP_DEBUG ) {

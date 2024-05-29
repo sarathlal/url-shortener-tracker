@@ -6,8 +6,8 @@
  * @link       https://tinylab.dev
  * @since      1.0.0
  *
- * @package    WP_URL_Shortener_Tracker
- * @subpackage WP_URL_Shortener_Tracker/public
+ * @package    URL_Shortener_Tracker
+ * @subpackage URL_Shortener_Tracker/public
  */
 
 /**
@@ -16,11 +16,11 @@
  * Defines the plugin name, version, and two examples hooks for how to
  * enqueue the public-facing stylesheet and JavaScript.
  *
- * @package    WP_URL_Shortener_Tracker
- * @subpackage WP_URL_Shortener_Tracker/public
+ * @package    URL_Shortener_Tracker
+ * @subpackage URL_Shortener_Tracker/public
  * @author     TinyLab <hello@tinylab.dev>
  */
-class WP_URL_Shortener_Tracker_Public {
+class URL_Shortener_Tracker_Public {
 
 	/**
 	 * The ID of this plugin.
@@ -65,15 +65,15 @@ class WP_URL_Shortener_Tracker_Public {
 		 * This function is provided for demonstration purposes only.
 		 *
 		 * An instance of this class should be passed to the run() function
-		 * defined in WP_URL_Shortener_Tracker_Loader as all of the hooks are defined
+		 * defined in URL_Shortener_Tracker_Loader as all of the hooks are defined
 		 * in that particular class.
 		 *
-		 * The WP_URL_Shortener_Tracker_Loader will then create the relationship
+		 * The URL_Shortener_Tracker_Loader will then create the relationship
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/wp-url-shortener-tracker-public.css', array(), $this->version, 'all' );
+		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/url-shortener-tracker-public.css', array(), $this->version, 'all' );
 
 	}
 
@@ -88,15 +88,15 @@ class WP_URL_Shortener_Tracker_Public {
 		 * This function is provided for demonstration purposes only.
 		 *
 		 * An instance of this class should be passed to the run() function
-		 * defined in WP_URL_Shortener_Tracker_Loader as all of the hooks are defined
+		 * defined in URL_Shortener_Tracker_Loader as all of the hooks are defined
 		 * in that particular class.
 		 *
-		 * The WP_URL_Shortener_Tracker_Loader will then create the relationship
+		 * The URL_Shortener_Tracker_Loader will then create the relationship
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/wp-url-shortener-tracker-public.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/url-shortener-tracker-public.js', array( 'jquery' ), $this->version, false );
 
 	}
 
@@ -127,7 +127,7 @@ class WP_URL_Shortener_Tracker_Public {
 
 
     public function add_rewrite_rules() {
-        $options = get_option('wp_url_shortener_tracker_settings');
+        $options = get_option('url_shortener_tracker_settings');
         $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
         add_rewrite_rule("^$endpoint/([^/]*)/?", 'index.php?tl_redirect_url=$matches[1]', 'top');
         add_rewrite_tag('%tl_redirect_url%', '([^&]+)');
