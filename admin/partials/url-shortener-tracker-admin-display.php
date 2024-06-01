@@ -13,6 +13,7 @@
  */
 
 
+
 global $wpdb;
 $table_name = $wpdb->prefix . 'tl_urls';
 
@@ -27,18 +28,35 @@ $order = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'ASC';
 $order = in_array($order, ['ASC', 'DESC']) ? $order : 'ASC';
 
 // Fetch URLs with pagination and sorting
-$urls = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name ORDER BY $sort_by $order LIMIT %d OFFSET %d", $limit, $offset));
-$total_urls = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
-$total_pages = ceil($total_urls / $limit);
+$cache_key = "urls_{$sort_by}_{$order}_{$limit}_{$offset}";
+$urls = wp_cache_get($cache_key, 'url_shortener_tracker');
 
-// Fetch URL for editing if edit action is triggered
-$edit_url = null;
-if (isset($_GET['action']) && $_GET['action'] == 'edit' && isset($_GET['id'])) {
-    $edit_url = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", intval($_GET['id'])));
+if ($urls === false) {
+    $urls = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name ORDER BY $sort_by $order LIMIT %d OFFSET %d", $limit, $offset));
+    wp_cache_set($cache_key, $urls, 'url_shortener_tracker', 3600);
 }
 
-$options = get_option('url_shortener_tracker_settings');
-$endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
+$total_urls = wp_cache_get('total_urls', 'url_shortener_tracker');
+if ($total_urls === false) {
+    $total_urls = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
+    wp_cache_set('total_urls', $total_urls, 'url_shortener_tracker', 3600);
+}
+
+$total_pages = ceil($total_urls / $limit);
+
+// Fetch URL for editing if edit action is triggered and nonce is verified
+$edit_url = null;
+if (isset($_GET['action']) && $_GET['action'] == 'edit' && isset($_GET['id']) && isset($_GET['_wpnonce'])) {
+    if (!wp_verify_nonce($_GET['_wpnonce'], 'edit_url_' . intval($_GET['id']))) {
+        wp_die('Nonce verification failed');
+    }
+    $edit_url_cache_key = "edit_url_" . intval($_GET['id']);
+    $edit_url = wp_cache_get($edit_url_cache_key, 'url_shortener_tracker');
+    if ($edit_url === false) {
+        $edit_url = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", intval($_GET['id'])));
+        wp_cache_set($edit_url_cache_key, $edit_url, 'url_shortener_tracker', 3600);
+    }
+}
 ?>
 
 <div class="wrap">
@@ -59,10 +77,11 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
     <form method="post">
         <input type="hidden" name="action" value="add_url">
         <input type="hidden" name="id" value="<?php echo $edit_url ? esc_attr($edit_url->id) : ''; ?>">
+        <?php wp_nonce_field('add_edit_url', 'add_edit_url_nonce'); ?>
         <table class="form-table">
             <tr>
                 <th scope="row"><label for="url">URL</label></th>
-                <td><?php echo esc_url(home_url( '/'.$endpoint)); ?>/<input name="url" type="text" id="url" value="<?php echo $edit_url ? esc_attr($edit_url->url) : ''; ?>" class="regular-text"></td>
+                <td><input name="url" type="text" id="url" value="<?php echo $edit_url ? esc_attr($edit_url->url) : ''; ?>" class="regular-text"></td>
             </tr>
             <tr>
                 <th scope="row"><label for="redirect">Redirect URL</label></th>
@@ -73,6 +92,7 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
     </form>
 
     <form method="post">
+        <?php wp_nonce_field('bulk_action', 'bulk_action_nonce'); ?>
         <div class="tablenav top">
             <div class="alignleft actions bulkactions">
                 <select name="bulk_action">
@@ -82,7 +102,7 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
                 </select>
                 <input type="submit" id="doaction" class="button action" value="Apply">
             </div>
-            <div class="alignright actions">
+            <div class="alignleft actions">
                 <label for="urls_per_page">URLs per page:</label>
                 <input type="number" name="urls_per_page" id="urls_per_page" value="<?php echo esc_attr($limit); ?>" min="1" max="100">
                 <input type="submit" class="button" value="Apply">
@@ -94,12 +114,12 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
                     <td id="cb" class="manage-column column-cb check-column">
                         <input type="checkbox" id="cb-select-all">
                     </td>
-                    <th><a href="<?php echo add_query_arg(array('sort_by' => 'id', 'order' => ($sort_by == 'id' && $order == 'ASC') ? 'DESC' : 'ASC')); ?>">ID</a></th>
+                    <th><a href="<?php echo esc_url(add_query_arg(array('sort_by' => 'id', 'order' => ($sort_by == 'id' && $order == 'ASC') ? 'DESC' : 'ASC'))); ?>">ID</a></th>
                     <th>URL</th>
                     <th>Redirect</th>
-                    <th><a href="<?php echo add_query_arg(array('sort_by' => 'clicks', 'order' => ($sort_by == 'clicks' && $order == 'ASC') ? 'DESC' : 'ASC')); ?>">Clicks</a></th>
-                    <th><a href="<?php echo add_query_arg(array('sort_by' => 'created_at', 'order' => ($sort_by == 'created_at' && $order == 'ASC') ? 'DESC' : 'ASC')); ?>">Created At</a></th>
-                    <th><a href="<?php echo add_query_arg(array('sort_by' => 'updated_at', 'order' => ($sort_by == 'updated_at' && $order == 'ASC') ? 'DESC' : 'ASC')); ?>">Updated At</a></th>
+                    <th><a href="<?php echo esc_url(add_query_arg(array('sort_by' => 'clicks', 'order' => ($sort_by == 'clicks' && $order == 'ASC') ? 'DESC' : 'ASC'))); ?>">Clicks</a></th>
+                    <th><a href="<?php echo esc_url(add_query_arg(array('sort_by' => 'created_at', 'order' => ($sort_by == 'created_at' && $order == 'ASC') ? 'DESC' : 'ASC'))); ?>">Created At</a></th>
+                    <th><a href="<?php echo esc_url(add_query_arg(array('sort_by' => 'updated_at', 'order' => ($sort_by == 'updated_at' && $order == 'ASC') ? 'DESC' : 'ASC'))); ?>">Updated At</a></th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -108,17 +128,17 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
                     <?php foreach ($urls as $url) : ?>
                         <tr>
                             <th scope="row" class="check-column">
-                                <input type="checkbox" name="url_ids[]" value="<?php echo $url->id; ?>">
+                                <input type="checkbox" name="url_ids[]" value="<?php echo esc_attr($url->id); ?>">
                             </th>
-                            <td><?php echo $url->id; ?></td>
-                            <td><?php echo esc_url(home_url( '/'.$endpoint.'/' . $url->url)); ?></td>
+                            <td><?php echo esc_html($url->id); ?></td>
+                            <td><?php echo esc_html($url->url); ?></td>
                             <td><?php echo esc_html($url->redirect); ?></td>
-                            <td><?php echo $url->clicks; ?></td>
-                            <td><?php echo $url->created_at; ?></td>
-                            <td><?php echo $url->updated_at; ?></td>
+                            <td><?php echo esc_html($url->clicks); ?></td>
+                            <td><?php echo esc_html($url->created_at); ?></td>
+                            <td><?php echo esc_html($url->updated_at); ?></td>
                             <td>
-                                <a href="<?php echo add_query_arg(array('action' => 'edit', 'id' => $url->id)); ?>">Edit</a> |
-                                <a href="<?php echo add_query_arg(array('action' => 'delete', 'id' => $url->id)); ?>" onclick="return confirm('Are you sure you want to delete this URL?');">Delete</a>
+                                <a href="<?php echo esc_url(wp_nonce_url(add_query_arg(array('action' => 'edit', 'id' => $url->id)), 'edit_url_' . $url->id)); ?>">Edit</a> |
+                                <a href="<?php echo esc_url(wp_nonce_url(add_query_arg(array('action' => 'delete', 'id' => $url->id)), 'delete_url_' . $url->id)); ?>" onclick="return confirm('Are you sure you want to delete this URL?');">Delete</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -131,7 +151,7 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
         </table>
 
         <div class="tablenav bottom">
-            <div class="alignleft tablenav-pages">
+            <div class="tablenav-pages">
                 <?php
                 $pagination_args = array(
                     'base' => add_query_arg(array('paged' => '%#%', 'sort_by' => $sort_by, 'order' => $order, 'urls_per_page' => $limit)),
@@ -146,11 +166,12 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
                     'next_text' => __('Next &raquo;'),
                     'type' => 'plain',
                 );
-                echo paginate_links($pagination_args);
+                if(1 < $total_pages){
+                    echo wp_kses_post(paginate_links($pagination_args));
+                }
                 ?>
             </div>
         </div>
-
     </form>
 </div>
 
