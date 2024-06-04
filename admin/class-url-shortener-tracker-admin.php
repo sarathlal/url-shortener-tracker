@@ -181,165 +181,239 @@ class URL_Shortener_Tracker_Admin {
         settings_errors('URL_Shortener_Tracker_settings');
     }
 
-function handle_url_actions() {
-    // Ensure we are on the correct admin page by checking the request URI
-    $current_url = $_SERVER['REQUEST_URI'];
-    if (strpos($current_url, 'page=url-shortener-tracker') === false) {
-        return;
-    }
-
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'tl_urls';
-
-    // Handle form submission for adding or editing URL
-    if (isset($_POST['action']) && $_POST['action'] == 'add_url') {
-        if (!isset($_POST['add_edit_url_nonce']) || !wp_verify_nonce($_POST['add_edit_url_nonce'], 'add_edit_url')) {
-            wp_die('Nonce verification failed');
+    function handle_url_actions() {
+        // Ensure we are on the correct admin page by checking the request URI
+        $current_url = $_SERVER['REQUEST_URI'];
+        if (strpos($current_url, 'page=url-shortener-tracker') === false) {
+            return;
         }
 
-        $url = sanitize_text_field($_POST['url']);
-        $redirect = sanitize_text_field($_POST['redirect']);
-        $error = false;
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'tl_urls';
 
-        // Validate redirect URL
-        if (!filter_var($redirect, FILTER_VALIDATE_URL) || !(strpos($redirect, 'http://') === 0 || strpos($redirect, 'https://') === 0)) {
-            $error = 'Invalid redirect URL. Please enter a valid URL starting with http:// or https://.';
-        }
-
-        // Check if URL is unique
-        $existing_url = wp_cache_get("existing_url_{$url}", 'url_shortener_tracker');
-        if ($existing_url === false) {
-            $existing_url = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table_name WHERE url = %s", $url));
-            wp_cache_set("existing_url_{$url}", $existing_url, 'url_shortener_tracker', 3600);
-        }
-        if ($existing_url > 0 && empty($_POST['id'])) {
-            $error = 'This URL already exists. Please enter a unique URL.';
-        }
-
-        // Check if redirect URL is unique
-        $existing_redirect = wp_cache_get("existing_redirect_{$redirect}", 'url_shortener_tracker');
-        if ($existing_redirect === false) {
-            $existing_redirect = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table_name WHERE redirect = %s", $redirect));
-            wp_cache_set("existing_redirect_{$redirect}", $existing_redirect, 'url_shortener_tracker', 3600);
-        }
-        if ($existing_redirect > 0 && empty($_POST['id'])) {
-            $error = 'This redirect URL already exists. Please enter a unique redirect URL.';
-        }
-
-        if (!$error) {
-            if ($_POST['id']) {
-                // Edit existing URL
-                $wpdb->update(
-                    $table_name,
-                    array(
-                        'url' => $url,
-                        'redirect' => $redirect,
-                        'updated_at' => current_time('mysql')
-                    ),
-                    array('id' => intval($_POST['id'])),
-                    array('%s', '%s', '%s'),
-                    array('%d')
-                );
-                wp_cache_delete("edit_url_" . intval($_POST['id']), 'url_shortener_tracker');
-                wp_cache_delete("existing_url_{$url}", 'url_shortener_tracker');
-                wp_cache_delete("existing_redirect_{$redirect}", 'url_shortener_tracker');
-                $notice = 'URL updated successfully.';
-            } else {
-                // Add new URL
-                $wpdb->insert(
-                    $table_name,
-                    array(
-                        'url' => $url,
-                        'redirect' => $redirect,
-                        'clicks' => 0,
-                        'created_at' => current_time('mysql'),
-                        'updated_at' => current_time('mysql')
-                    ),
-                    array('%s', '%s', '%d', '%s', '%s')
-                );
-                wp_cache_delete('total_urls', 'url_shortener_tracker');
-                $notice = 'URL added successfully.';
+        // Handle form submission for adding or editing URL
+        if (isset($_POST['action']) && $_POST['action'] == 'add_url') {
+            if (!isset($_POST['add_edit_url_nonce']) || !wp_verify_nonce($_POST['add_edit_url_nonce'], 'add_edit_url')) {
+                wp_die('Nonce verification failed');
             }
+
+            $url = sanitize_text_field($_POST['url']);
+            $redirect = sanitize_text_field($_POST['redirect']);
+            $error = false;
+
+            // Validate redirect URL
+            if (!filter_var($redirect, FILTER_VALIDATE_URL) || !(strpos($redirect, 'http://') === 0 || strpos($redirect, 'https://') === 0)) {
+                $error = 'Invalid redirect URL. Please enter a valid URL starting with http:// or https://.';
+            }
+
+            // Check if URL is unique
+            $existing_url = wp_cache_get("existing_url_{$url}", 'url_shortener_tracker');
+            if ($existing_url === false) {
+                $existing_url = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table_name WHERE url = %s", $url));
+                wp_cache_set("existing_url_{$url}", $existing_url, 'url_shortener_tracker', 3600);
+            }
+            if ($existing_url > 0 && empty($_POST['id'])) {
+                $error = 'This URL already exists. Please enter a unique URL.';
+            }
+
+            // Check if redirect URL is unique
+            $existing_redirect = wp_cache_get("existing_redirect_{$redirect}", 'url_shortener_tracker');
+            if ($existing_redirect === false) {
+                $existing_redirect = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table_name WHERE redirect = %s", $redirect));
+                wp_cache_set("existing_redirect_{$redirect}", $existing_redirect, 'url_shortener_tracker', 3600);
+            }
+            if ($existing_redirect > 0 && empty($_POST['id'])) {
+                $error = 'This redirect URL already exists. Please enter a unique redirect URL.';
+            }
+
+            if (!$error) {
+                if ($_POST['id']) {
+                    // Edit existing URL
+                    $wpdb->update(
+                        $table_name,
+                        array(
+                            'url' => $url,
+                            'redirect' => $redirect,
+                            'updated_at' => current_time('mysql')
+                        ),
+                        array('id' => intval($_POST['id'])),
+                        array('%s', '%s', '%s'),
+                        array('%d')
+                    );
+                    wp_cache_delete("edit_url_" . intval($_POST['id']), 'url_shortener_tracker');
+                    wp_cache_delete("existing_url_{$url}", 'url_shortener_tracker');
+                    wp_cache_delete("existing_redirect_{$redirect}", 'url_shortener_tracker');
+                    $notice = 'URL updated successfully.';
+                } else {
+                    // Add new URL
+                    $wpdb->insert(
+                        $table_name,
+                        array(
+                            'url' => $url,
+                            'redirect' => $redirect,
+                            'clicks' => 0,
+                            'created_at' => current_time('mysql'),
+                            'updated_at' => current_time('mysql')
+                        ),
+                        array('%s', '%s', '%d', '%s', '%s')
+                    );
+                    wp_cache_delete('total_urls', 'url_shortener_tracker');
+                    $notice = 'URL added successfully.';
+                }
+                wp_redirect(add_query_arg('notice', urlencode($notice), remove_query_arg(array('action', 'id'))));
+                exit();
+            } else {
+                wp_redirect(add_query_arg('error', urlencode($error), remove_query_arg(array('action', 'id'))));
+                exit();
+            }
+        }
+
+        // Handle URL deletion
+        if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
+            if (!isset($_GET['_wpnonce']) || !wp_verify_nonce($_GET['_wpnonce'], 'delete_url_' . intval($_GET['id']))) {
+                wp_die('Nonce verification failed');
+            }
+
+            $wpdb->delete(
+                $table_name,
+                array('id' => intval($_GET['id'])),
+                array('%d')
+            );
+            wp_cache_delete("edit_url_" . intval($_GET['id']), 'url_shortener_tracker');
+            wp_cache_delete('total_urls', 'url_shortener_tracker');
+            $notice = 'URL deleted successfully.';
             wp_redirect(add_query_arg('notice', urlencode($notice), remove_query_arg(array('action', 'id'))));
             exit();
-        } else {
-            wp_redirect(add_query_arg('error', urlencode($error), remove_query_arg(array('action', 'id'))));
-            exit();
-        }
-    }
-
-    // Handle URL deletion
-    if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
-        if (!isset($_GET['_wpnonce']) || !wp_verify_nonce($_GET['_wpnonce'], 'delete_url_' . intval($_GET['id']))) {
-            wp_die('Nonce verification failed');
         }
 
-        $wpdb->delete(
-            $table_name,
-            array('id' => intval($_GET['id'])),
-            array('%d')
-        );
-        wp_cache_delete("edit_url_" . intval($_GET['id']), 'url_shortener_tracker');
-        wp_cache_delete('total_urls', 'url_shortener_tracker');
-        $notice = 'URL deleted successfully.';
-        wp_redirect(add_query_arg('notice', urlencode($notice), remove_query_arg(array('action', 'id'))));
-        exit();
-    }
-
-    // Handle bulk delete and export actions
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        if (!isset($_POST['bulk_action_nonce']) || !wp_verify_nonce($_POST['bulk_action_nonce'], 'bulk_action')) {
-            wp_die('Nonce verification failed');
-        }
-
-        if (isset($_POST['bulk_action']) && $_POST['bulk_action'] == 'delete' && !empty($_POST['url_ids'])) {
-            foreach ($_POST['url_ids'] as $url_id) {
-                $wpdb->delete(
-                    $table_name,
-                    array('id' => intval($url_id)),
-                    array('%d')
-                );
-                wp_cache_delete("edit_url_" . intval($url_id), 'url_shortener_tracker');
-            }
-            wp_cache_delete('total_urls', 'url_shortener_tracker');
-            $notice = 'Selected URLs deleted successfully.';
-            wp_redirect(add_query_arg('notice', urlencode($notice)));
-            exit();
-        }
-
-        if (isset($_POST['bulk_action']) && $_POST['bulk_action'] == 'export' && !empty($_POST['url_ids'])) {
-            $url_ids = array_map('intval', $_POST['url_ids']);
-            $placeholders = implode(',', array_fill(0, count($url_ids), '%d'));
-            $urls_to_export = wp_cache_get("export_urls_" . implode('_', $url_ids), 'url_shortener_tracker');
-            if ($urls_to_export === false) {
-                $urls_to_export = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE id IN ($placeholders)", $url_ids), ARRAY_A);
-                wp_cache_set("export_urls_" . implode('_', $url_ids), $urls_to_export, 'url_shortener_tracker', 3600);
+        // Handle bulk delete and export actions
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if (!isset($_POST['bulk_action_nonce']) || !wp_verify_nonce($_POST['bulk_action_nonce'], 'bulk_action')) {
+                wp_die('Nonce verification failed');
             }
 
-            if ($urls_to_export) {
-                // Set headers to force download of the CSV file
-                header('Content-Type: text/csv');
-                header('Content-Disposition: attachment; filename="exported_urls.csv"');
-                header('Pragma: no-cache');
-                header('Expires: 0');
+            if (isset($_POST['bulk_action']) && $_POST['bulk_action'] == 'delete' && !empty($_POST['url_ids'])) {
+                foreach ($_POST['url_ids'] as $url_id) {
+                    $wpdb->delete(
+                        $table_name,
+                        array('id' => intval($url_id)),
+                        array('%d')
+                    );
+                    wp_cache_delete("edit_url_" . intval($url_id), 'url_shortener_tracker');
+                }
+                wp_cache_delete('total_urls', 'url_shortener_tracker');
+                $notice = 'Selected URLs deleted successfully.';
+                wp_redirect(add_query_arg('notice', urlencode($notice)));
+                exit();
+            }
 
-                $output = fopen('php://output', 'w');
-                fputcsv($output, array('ID', 'URL', 'Redirect', 'Clicks', 'Created At', 'Updated At'));
-
-                foreach ($urls_to_export as $url) {
-                    fputcsv($output, $url);
+            if (isset($_POST['bulk_action']) && $_POST['bulk_action'] == 'export' && !empty($_POST['url_ids'])) {
+                $url_ids = array_map('intval', $_POST['url_ids']);
+                $placeholders = implode(',', array_fill(0, count($url_ids), '%d'));
+                $urls_to_export = wp_cache_get("export_urls_" . implode('_', $url_ids), 'url_shortener_tracker');
+                if ($urls_to_export === false) {
+                    $urls_to_export = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE id IN ($placeholders)", $url_ids), ARRAY_A);
+                    wp_cache_set("export_urls_" . implode('_', $url_ids), $urls_to_export, 'url_shortener_tracker', 3600);
                 }
 
-                fclose($output);
-                exit();
-            } else {
-                $error = 'No URLs found to export.';
-                wp_redirect(add_query_arg('error', urlencode($error)));
-                exit();
+                if ($urls_to_export) {
+
+                    $file_path = $this->generate_csv_file($urls_to_export);
+                    if (is_wp_error($file_path)) {
+                        echo 'Error generating CSV file.';
+                        return;
+                    }
+
+                    $attach_id = $this->create_csv_attachment($file_path);
+                    if (is_wp_error($attach_id)) {
+                        echo 'Error creating attachment.';
+                        return;
+                    }
+
+                    $attachment_url = wp_get_attachment_url($attach_id);
+                    $notice = 'CSV file generated and attached. Download it <a href="' . esc_url($attachment_url) . '">here</a>.';
+
+                    //$notice = 'Selected URLs deleted successfully.';
+                    wp_redirect(add_query_arg('notice', urlencode($notice)));
+
+                    exit();
+                } else {
+                    $error = 'No URLs found to export.';
+                    wp_redirect(add_query_arg('error', urlencode($error)));
+                    exit();
+                }
             }
         }
     }
-}
+
+
+    private function generate_csv_file($data) {
+
+        if ( ! function_exists( 'wp_handle_upload' ) ) {
+            require_once( ABSPATH . 'wp-admin/includes/file.php' );
+        }
+
+        WP_Filesystem();
+        global $wp_filesystem;    
+
+        if ( empty( $data ) ) {
+            return new WP_Error( 'no_data', 'No data found to export.' );
+        }
+
+        // CSV content
+        $csv_content = '';
+
+        // Add column headers
+        $headers = array_keys( $data[0] );
+        $csv_content .= implode( ',', $headers ) . "\n";
+
+        // Add rows
+        foreach ( $data as $row ) {
+            $csv_content .= implode( ',', $row ) . "\n";
+        }
+
+        // Get the WordPress uploads directory
+        $upload_dir = wp_upload_dir();
+        $file_path = trailingslashit( $upload_dir['path'] ) . 'url-export-'.current_datetime()->format('Y-m-d-H-i-s').'.csv';
+
+        // Write the CSV content to a file
+        if ( ! $wp_filesystem->put_contents( $file_path, $csv_content, FS_CHMOD_FILE ) ) {
+            return new WP_Error( 'write_error', 'Could not write the file.' );
+        }
+
+        return $file_path;
+    }
+
+
+    private function create_csv_attachment($file_path) {
+        // Check the type of file. We'll use this as the 'post_mime_type'.
+        $filetype = wp_check_filetype(basename($file_path), null);
+
+        // Get the path to the upload directory.
+        $wp_upload_dir = wp_upload_dir();
+
+        // Prepare an array of post data for the attachment.
+        $attachment = array(
+            'guid'           => $wp_upload_dir['url'] . '/' . basename($file_path),
+            'post_mime_type' => $filetype['type'],
+            'post_title'     => preg_replace('/\.[^.]+$/', '', basename($file_path)),
+            'post_content'   => '',
+            'post_status'    => 'inherit'
+        );
+
+        // Insert the attachment.
+        $attach_id = wp_insert_attachment($attachment, $file_path);
+
+        // Make sure that this file is included, as wp_generate_attachment_metadata() depends on it.
+        require_once(ABSPATH . 'wp-admin/includes/image.php');
+
+        // Generate the metadata for the attachment, and update the database record.
+        $attach_data = wp_generate_attachment_metadata($attach_id, $file_path);
+        wp_update_attachment_metadata($attach_id, $attach_data);
+
+        return $attach_id;
+    }
+
 
 
 }

@@ -64,13 +64,13 @@ if (isset($_GET['action']) && $_GET['action'] == 'edit' && isset($_GET['id']) &&
 
     <?php if (isset($_GET['notice'])): ?>
         <div class="notice notice-success is-dismissible">
-            <p><?php echo esc_html(urldecode($_GET['notice'])); ?></p>
+            <p><?php echo wp_kses_post(urldecode($_GET['notice'])); ?></p>
         </div>
     <?php endif; ?>
 
     <?php if (isset($_GET['error'])): ?>
         <div class="notice notice-error is-dismissible">
-            <p><?php echo esc_html(urldecode($_GET['error'])); ?></p>
+            <p><?php echo wp_kses_post(urldecode($_GET['error'])); ?></p>
         </div>
     <?php endif; ?>
 
