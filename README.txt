@@ -1,4 +1,4 @@
-=== WP URL Shortener & Tracker ===
+=== URL Shortener & Tracker ===
 Contributors: yourusername
 Donate link: https://example.com/donate
 Tags: url, redirect, tracking, analytics, shortener, wordpress
@@ -9,11 +9,11 @@ Stable tag: 1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-WP URL Shortener & Tracker is a comprehensive plugin to manage, shorten, and track URLs within WordPress. Monitor click analytics and streamline your URL management.
+URL Shortener & Tracker is a comprehensive plugin to manage, shorten, and track URLs within WordPress. Monitor click analytics and streamline your URL management.
 
 == Description ==
 
-**WP URL Shortener & Tracker** is a powerful and user-friendly plugin that enables you to create, manage, and track URL redirects within your WordPress site. This plugin is perfect for bloggers, marketers, and website administrators who need to efficiently manage redirects and monitor click analytics. It offers bulk actions for easy management and provides detailed click tracking for each URL.
+**URL Shortener & Tracker** is a powerful and user-friendly plugin that enables you to create, manage, and track URL redirects within your WordPress site. This plugin is perfect for bloggers, marketers, and website administrators who need to efficiently manage redirects and monitor click analytics. It offers bulk actions for easy management and provides detailed click tracking for each URL.
 
 **Key Features:**
 * Create and manage URL redirects

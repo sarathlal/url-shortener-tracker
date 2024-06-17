@@ -13,9 +13,9 @@
  * @package           URL_Shortener_Tracker
  *
  * @wordpress-plugin
- * Plugin Name:       WP URL Shortener & Tracker
+ * Plugin Name:       URL Shortener & Tracker
  * Plugin URI:        https://tinylab.dev
- * Description:       WP URL Shortener & Tracker is a tool to manage, shorten, and track URLs from WordPress. Monitor click analytics and streamline your URL management.
+ * Description:       URL Shortener & Tracker is a tool to manage, shorten, and track URLs from WordPress. Monitor click analytics and streamline your URL management.
  * Version:           1.0.0
  * Author:            TinyLab
  * Author URI:        https://tinylab.dev/
