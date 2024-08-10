@@ -107,7 +107,7 @@ class URL_Shortener_Tracker_Admin {
             'URLs',
             'manage_options',
             'url-shortener-tracker',
-            array($this, 'display_plugin_admin_page'),
+            array($this, 'display_url_listing_page'),
             'dashicons-admin-links'
         );
 
@@ -120,11 +120,25 @@ class URL_Shortener_Tracker_Admin {
             array($this, 'display_plugin_settings_page')
         );
 
+        // Add a submenu page to a "hidden" menu. The first argument can be any existing menu slug, or even 'options.php' to hide it.
+        add_submenu_page(
+            'URLs', // This makes the submenu page hidden; no parent menu
+            'URL Data Listing', // Page title
+            'URL Data Listing', // Menu title (doesn't matter here since it's hidden)
+            'manage_options', // Capability required to access the page
+            'url_data_listing', // The slug for the page
+            array($this, 'display_url_data_listing_page') // The function to display the page content
+        );        
+
     }
 
-    public function display_plugin_admin_page() {
-        include_once('partials/url-shortener-tracker-admin-display.php');
+    public function display_url_listing_page() {
+        include_once('partials/url-shortener-tracker-url-listing.php');
     }
+
+    public function display_url_data_listing_page() {
+        include_once('partials/url-shortener-tracker-url-data-listing.php');
+    }    
 
   	public function display_plugin_settings_page() {
         ?>
@@ -339,6 +353,89 @@ class URL_Shortener_Tracker_Admin {
                     exit();
                 } else {
                     $error = 'No URLs found to export.';
+                    wp_redirect(add_query_arg('error', urlencode($error)));
+                    exit();
+                }
+            }
+        }
+    }
+
+
+    function handle_url_data_actions() {
+        // Ensure we are on the correct admin page by checking the request URI
+        $current_url = $_SERVER['REQUEST_URI'];
+        if (strpos($current_url, 'page=url_data_listing') === false) {
+            return;
+        }
+
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'tl_url_data';
+
+        // Handle data deletion
+        if (isset($_GET['action']) && $_GET['action'] == 'delete_data' && isset($_GET['data_id'])) {
+            if (!isset($_GET['_wpnonce']) || !wp_verify_nonce($_GET['_wpnonce'], 'delete_data_' . intval($_GET['data_id']))) {
+                wp_die('Nonce verification failed');
+            }
+
+            $wpdb->delete(
+                $table_name,
+                array('id' => intval($_GET['data_id'])),
+                array('%d')
+            );
+            $notice = 'Data entry deleted successfully.';
+            wp_redirect(add_query_arg('notice', urlencode($notice), remove_query_arg(array('action', 'data_id'))));
+            exit();
+        }
+
+        // Handle bulk delete and export actions for URL data
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if (!isset($_POST['bulk_action_nonce']) || !wp_verify_nonce($_POST['bulk_action_nonce'], 'bulk_action')) {
+                wp_die('Nonce verification failed');
+            }
+
+            if (isset($_POST['bulk_action']) && $_POST['bulk_action'] == 'delete' && !empty($_POST['data_ids'])) {
+                foreach ($_POST['data_ids'] as $data_id) {
+                    $wpdb->delete(
+                        $table_name,
+                        array('id' => intval($data_id)),
+                        array('%d')
+                    );
+                }
+                $notice = 'Selected data entries deleted successfully.';
+                wp_redirect(add_query_arg('notice', urlencode($notice)));
+                exit();
+            }
+
+            if (isset($_POST['bulk_action']) && $_POST['bulk_action'] == 'export' && !empty($_POST['data_ids'])) {
+                $data_ids = array_map('intval', $_POST['data_ids']);
+                $placeholders = implode(',', array_fill(0, count($data_ids), '%d'));
+                $data_to_export = wp_cache_get("export_data_" . implode('_', $data_ids), 'url_shortener_tracker');
+                if ($data_to_export === false) {
+                    $data_to_export = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE id IN ($placeholders)", $data_ids), ARRAY_A);
+                    wp_cache_set("export_data_" . implode('_', $data_ids), $data_to_export, 'url_shortener_tracker', 3600);
+                }
+
+                if ($data_to_export) {
+
+                    $file_path = $this->generate_csv_file($data_to_export); // Assuming this method is available
+                    if (is_wp_error($file_path)) {
+                        echo 'Error generating CSV file.';
+                        return;
+                    }
+
+                    $attach_id = $this->create_csv_attachment($file_path); // Assuming this method is available
+                    if (is_wp_error($attach_id)) {
+                        echo 'Error creating attachment.';
+                        return;
+                    }
+
+                    $attachment_url = wp_get_attachment_url($attach_id);
+                    $notice = 'CSV file generated and attached. Download it <a href="' . esc_url($attachment_url) . '">here</a>.';
+
+                    wp_redirect(add_query_arg('notice', urlencode($notice)));
+                    exit();
+                } else {
+                    $error = 'No data entries found to export.';
                     wp_redirect(add_query_arg('error', urlencode($error)));
                     exit();
                 }

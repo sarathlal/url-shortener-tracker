@@ -32,10 +32,11 @@ class URL_Shortener_Tracker_Activator {
 	public static function activate() {
        global $wpdb;
 
-        $table_name = $wpdb->prefix . 'tl_urls';
+        // Table 1: tl_urls
+        $table_name_urls = $wpdb->prefix . 'tl_urls';
         $charset_collate = $wpdb->get_charset_collate();
 
-        $sql = "CREATE TABLE $table_name (
+        $sql_urls = "CREATE TABLE $table_name_urls (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             url varchar(255) NOT NULL,
             redirect varchar(255) NOT NULL,
@@ -45,8 +46,30 @@ class URL_Shortener_Tracker_Activator {
             PRIMARY KEY  (id)
         ) $charset_collate;";
 
+
+        // Table 2: tl_url_data
+        $table_name_url_data = $wpdb->prefix . 'tl_url_data';
+
+        $sql_url_data = "CREATE TABLE $table_name_url_data (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            url_id mediumint(9) NOT NULL,
+            ip_address varchar(100) NOT NULL,
+            referrer text,
+            user_agent text,
+            query_string text,
+            timestamp datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            language varchar(50),
+            method varchar(10),
+            page_url text,
+            user_id bigint(20),
+            PRIMARY KEY  (id),
+            FOREIGN KEY (url_id) REFERENCES $table_name_urls(id) ON DELETE CASCADE
+        ) $charset_collate;";
+
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
+        dbDelta($sql_urls);
+        dbDelta($sql_url_data);
 
         flush_rewrite_rules();
 	}

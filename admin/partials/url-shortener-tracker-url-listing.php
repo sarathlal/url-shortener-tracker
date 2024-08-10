@@ -27,20 +27,15 @@ $sort_by = isset($_GET['sort_by']) ? sanitize_text_field($_GET['sort_by']) : 'id
 $order = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'ASC';
 $order = in_array($order, ['ASC', 'DESC']) ? $order : 'ASC';
 
-// Fetch URLs with pagination and sorting
-$cache_key = "urls_{$sort_by}_{$order}_{$limit}_{$offset}";
-$urls = wp_cache_get($cache_key, 'url_shortener_tracker');
+// Handle search query
+$search_query = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
 
-if ($urls === false) {
-    $urls = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name ORDER BY $sort_by $order LIMIT %d OFFSET %d", $limit, $offset));
-    wp_cache_set($cache_key, $urls, 'url_shortener_tracker', 3600);
-}
+// Modify the query to include search functionality
+$where_clause = $search_query ? $wpdb->prepare("WHERE url LIKE %s OR redirect LIKE %s", '%' . $search_query . '%', '%' . $search_query . '%') : '';
 
-$total_urls = wp_cache_get('total_urls', 'url_shortener_tracker');
-if ($total_urls === false) {
-    $total_urls = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
-    wp_cache_set('total_urls', $total_urls, 'url_shortener_tracker', 3600);
-}
+$urls = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name $where_clause ORDER BY $sort_by $order LIMIT %d OFFSET %d", $limit, $offset));
+
+$total_urls = $wpdb->get_var("SELECT COUNT(*) FROM $table_name $where_clause");
 
 $total_pages = ceil($total_urls / $limit);
 
@@ -57,6 +52,9 @@ if (isset($_GET['action']) && $_GET['action'] == 'edit' && isset($_GET['id']) &&
         wp_cache_set($edit_url_cache_key, $edit_url, 'url_shortener_tracker', 3600);
     }
 }
+
+$options = get_option('url_shortener_tracker_settings');
+$endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
 ?>
 
 <div class="wrap">
@@ -74,26 +72,34 @@ if (isset($_GET['action']) && $_GET['action'] == 'edit' && isset($_GET['id']) &&
         </div>
     <?php endif; ?>
 
-    <form method="post">
-        <input type="hidden" name="action" value="add_url">
-        <input type="hidden" name="id" value="<?php echo $edit_url ? esc_attr($edit_url->id) : ''; ?>">
-        <?php wp_nonce_field('add_edit_url', 'add_edit_url_nonce'); ?>
-        <table class="form-table">
-            <tr>
-                <th scope="row"><label for="url">URL</label></th>
-                <td><input name="url" type="text" id="url" value="<?php echo $edit_url ? esc_attr($edit_url->url) : ''; ?>" class="regular-text"></td>
-            </tr>
-            <tr>
-                <th scope="row"><label for="redirect">Redirect URL</label></th>
-                <td><input name="redirect" type="text" id="redirect" value="<?php echo $edit_url ? esc_attr($edit_url->redirect) : ''; ?>" class="regular-text"></td>
-            </tr>
-        </table>
-        <p class="submit"><input type="submit" class="button-primary" value="<?php echo $edit_url ? 'Update URL' : 'Add URL'; ?>"></p>
+    <div style="padding:10px; border: 1px solid #c6c7ca; border-radius: 2px;">
+        <form method="post">
+            <input type="hidden" name="action" value="add_url">
+            <input type="hidden" name="id" value="<?php echo $edit_url ? esc_attr($edit_url->id) : ''; ?>">
+            <?php wp_nonce_field('add_edit_url', 'add_edit_url_nonce'); ?>
+            <table class="form-table">
+                <tr>
+                    <th scope="row"><label for="url">URL</label></th>
+                    <td><?php echo esc_url(trailingslashit(home_url($endpoint))); ?><input name="url" type="text" id="url" value="<?php echo $edit_url ? esc_attr($edit_url->url) : ''; ?>" class="regular-text"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="redirect">Redirect URL</label></th>
+                    <td><input name="redirect" type="text" id="redirect" value="<?php echo $edit_url ? esc_attr($edit_url->redirect) : ''; ?>" class="regular-text"></td>
+                </tr>
+            </table>
+            <p class="submit"><input type="submit" class="button-primary" value="<?php echo $edit_url ? 'Update URL' : 'Add URL'; ?>"></p>
+        </form>
+    </div>
+
+    <form method="get" action="">
+        <input type="hidden" name="page" value="url-shortener-tracker">
+        <input type="text" name="s" value="<?php echo isset($_GET['s']) ? esc_attr($_GET['s']) : ''; ?>" placeholder="Search URLs">
+        <input type="submit" class="button" value="Search">
     </form>
 
     <form method="post">
         <?php wp_nonce_field('bulk_action', 'bulk_action_nonce'); ?>
-        <div class="tablenav top">
+        <div class="tablenav top" style="margin-bottom: 10px;">
             <div class="alignleft actions bulkactions">
                 <select name="bulk_action">
                     <option value="-1">Bulk actions</option>
@@ -131,7 +137,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'edit' && isset($_GET['id']) &&
                                 <input type="checkbox" name="url_ids[]" value="<?php echo esc_attr($url->id); ?>">
                             </th>
                             <td><?php echo esc_html($url->id); ?></td>
-                            <td><?php echo esc_html($url->url); ?></td>
+                            <td><a href="admin.php?page=url_data_listing&url_id=<?php echo esc_attr($url->id); ?>"><?php echo esc_html(trailingslashit(home_url($endpoint)) . $url->url); ?></a></td>
                             <td><?php echo esc_html($url->redirect); ?></td>
                             <td><?php echo esc_html($url->clicks); ?></td>
                             <td><?php echo esc_html($url->created_at); ?></td>

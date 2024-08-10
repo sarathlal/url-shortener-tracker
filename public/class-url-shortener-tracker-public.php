@@ -104,6 +104,8 @@ class URL_Shortener_Tracker_Public {
 
         global $wp_query, $wpdb;
 
+        URL_Shortener_Tracker_Utils::write_log('handle_redirects');
+
         if (isset($wp_query->query_vars['tl_redirect_url'])) {
 
             $requested_url = $wp_query->query_vars['tl_redirect_url'];
@@ -118,12 +120,58 @@ class URL_Shortener_Tracker_Public {
                     'updated_at' => current_time('mysql')
                 ), array('id' => $row->id));
 
+                $this->save_url_data($row->id);
+
                 wp_redirect($row->redirect);
                 exit();
             }
         }
 
-    }	
+    }
+
+
+	function save_url_data($url_id) {
+
+	    global $wpdb;
+
+	    // Get details
+	    $ip_address = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : 'unknown';
+	    $referrer = isset($_SERVER['HTTP_REFERER']) ? sanitize_text_field($_SERVER['HTTP_REFERER']) : 'direct';
+	    $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field($_SERVER['HTTP_USER_AGENT']) : 'unknown';
+	    $query_string = isset($_SERVER['QUERY_STRING']) ? sanitize_text_field($_SERVER['QUERY_STRING']) : '';
+	    $timestamp = current_time('mysql');
+	    $language = isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? sanitize_text_field($_SERVER['HTTP_ACCEPT_LANGUAGE']) : 'unknown';
+	    $language = substr($language, 0, 50); // Truncate to 50 characters
+	    $method = sanitize_text_field($_SERVER['REQUEST_METHOD']);
+	    $page_url = sanitize_text_field($_SERVER['REQUEST_URI']);
+	    $user_id = get_current_user_id();
+
+	    // Prepare data for insertion
+	    $data = array(
+	        'url_id' => $url_id,
+	        'ip_address' => $ip_address,
+	        'referrer' => $referrer,
+	        'user_agent' => $user_agent,
+	        'query_string' => $query_string,
+	        'timestamp' => $timestamp,
+	        'language' => $language,
+	        'method' => $method,
+	        'page_url' => $page_url,
+	        'user_id' => $user_id ? $user_id : null, // Store null if the user is not logged in
+	    );
+
+	    // Insert data into the tl_url_data table
+	    $result = $wpdb->insert(
+	        $wpdb->prefix . 'tl_url_data',
+	        $data
+	    );
+
+		// Check the result and log errors if any
+		if ($result === false) {
+			error_log('Insert failed: ' . $wpdb->last_error);
+		}
+
+	}
 
 
     public function add_rewrite_rules() {
