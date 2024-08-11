@@ -72,30 +72,43 @@ $endpoint = isset($options['endpoint']) ? $options['endpoint'] : 'go';
         </div>
     <?php endif; ?>
 
-    <div style="padding:10px; border: 1px solid #c6c7ca; border-radius: 2px;">
+    <div style="padding: 10px 15px; border: 1px solid #c8c9cc; border-radius: 4px; background: #fff; margin-bottom:10px;">
         <form method="post">
             <input type="hidden" name="action" value="add_url">
             <input type="hidden" name="id" value="<?php echo $edit_url ? esc_attr($edit_url->id) : ''; ?>">
             <?php wp_nonce_field('add_edit_url', 'add_edit_url_nonce'); ?>
-            <table class="form-table">
-                <tr>
-                    <th scope="row"><label for="url">URL</label></th>
-                    <td><?php echo esc_url(trailingslashit(home_url($endpoint))); ?><input name="url" type="text" id="url" value="<?php echo $edit_url ? esc_attr($edit_url->url) : ''; ?>" class="regular-text"></td>
-                </tr>
-                <tr>
-                    <th scope="row"><label for="redirect">Redirect URL</label></th>
-                    <td><input name="redirect" type="text" id="redirect" value="<?php echo $edit_url ? esc_attr($edit_url->redirect) : ''; ?>" class="regular-text"></td>
-                </tr>
-            </table>
-            <p class="submit"><input type="submit" class="button-primary" value="<?php echo $edit_url ? 'Update URL' : 'Add URL'; ?>"></p>
+            <div style="display: flex; align-items: center; gap: 30px;"> <!-- Flexbox container -->
+                <div style="flex: 1; max-width:300px"> <!-- Flex item for URL String -->
+                    <label for="url">URL String</label><br>
+                    <input name="url" type="text" id="url" value="<?php echo $edit_url ? esc_attr($edit_url->url) : ''; ?>" class="regular-text" style="width: 100%;">
+                    <p class="description">
+                        <?php echo esc_url(trailingslashit(home_url($endpoint))); ?>
+                    </p>
+                </div>
+                <div style="flex: 1; max-width:300px"> <!-- Flex item for Redirect URL -->
+                    <label for="redirect">Redirect URL</label><br>
+                    <input name="redirect" type="text" id="redirect" value="<?php echo $edit_url ? esc_attr($edit_url->redirect) : ''; ?>" class="regular-text" style="width: 100%;">
+                    <p class="description">
+                        &nbsp;
+                    </p>                
+                </div>
+                <div> <!-- Flex item for Submit button -->
+                    <input style="margin-top: 20px" type="submit" class="button-primary" value="<?php echo $edit_url ? 'Update URL' : 'Add URL'; ?>" style="margin-top: 24px;"> <!-- Align button vertically with inputs -->
+                    <p class="description">
+                        &nbsp;
+                    </p>
+                </div>
+            </div>
         </form>
     </div>
 
-    <form method="get" action="">
-        <input type="hidden" name="page" value="url-shortener-tracker">
-        <input type="text" name="s" value="<?php echo isset($_GET['s']) ? esc_attr($_GET['s']) : ''; ?>" placeholder="Search URLs">
-        <input type="submit" class="button" value="Search">
-    </form>
+    <div style="padding: 10px 15px; border: 1px solid #c8c9cc; border-radius: 4px; margin-bottom:10px;">
+        <form method="get" action="">
+            <input type="hidden" name="page" value="url-shortener-tracker">
+            <input type="text" name="s" value="<?php echo isset($_GET['s']) ? esc_attr($_GET['s']) : ''; ?>" placeholder="Search URLs">
+            <input type="submit" class="button" value="Search">
+        </form>
+    </div>    
 
     <form method="post">
         <?php wp_nonce_field('bulk_action', 'bulk_action_nonce'); ?>
